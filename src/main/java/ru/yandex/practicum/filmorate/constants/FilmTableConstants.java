@@ -2,12 +2,12 @@ package ru.yandex.practicum.filmorate.constants;
 
 public class FilmTableConstants {
 
-    public final static String TABLE_NAME = "films";
-    public final static String FILM_ID = "FILM_ID";
-    public final static String NAME = "NAME";
-    public final static String DESCRIPTION = "DESCRIPTION";
-    public final static String RELEASE_DATE = "RELEASE_DATE";
-    public final static String DURATION = "DURATION";
-    public final static String RATING_MPA_ID = "RATING_MPA_ID";
+    public static final String TABLE_NAME = "films";
+    public static final String FILM_ID = "FILM_ID";
+    public static final String NAME = "NAME";
+    public static final String DESCRIPTION = "DESCRIPTION";
+    public static final String RELEASE_DATE = "RELEASE_DATE";
+    public static final String DURATION = "DURATION";
+    public static final String RATING_MPA_ID = "RATING_MPA_ID";
 }
 
