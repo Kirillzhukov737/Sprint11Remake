@@ -19,13 +19,13 @@ public class GenreServise {
         this.genreStorage = genreStorage;
     }
 
-    public Genre getGenreById(int id){
+    public Genre getGenreById(int id) {
         Genre genre = genreStorage.getGenreById(id);
-        log.info("Передан жанр {}",genre);
+        log.info("Передан жанр {}", genre);
         return genre;
     }
 
-    public List<Genre> getAllGenres(){
+    public List<Genre> getAllGenres() {
         List<Genre> genres = genreStorage.getAllGenres();
         log.info("Переданы все жанры");
         return genres;

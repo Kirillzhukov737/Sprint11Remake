@@ -19,17 +19,15 @@ public class MpaService {
         this.mpaStorage = mpaStorage;
     }
 
-    public RatingMPA getRatingMPAById(int id){
+    public RatingMPA getRatingMPAById(int id) {
         RatingMPA ratingMPA = mpaStorage.getRatingMpaById(id);
-        log.info("Передан MPA рейтинг {}",ratingMPA);
+        log.info("Передан MPA рейтинг {}", ratingMPA);
         return ratingMPA;
     }
 
-    public List<RatingMPA> getAllRatingMpa(){
+    public List<RatingMPA> getAllRatingMpa() {
         List<RatingMPA> ratingMPA = mpaStorage.getAllRatingMpa();
         log.info("Передан список всех MPA рейтингов ");
         return ratingMPA;
     }
-
-
 }

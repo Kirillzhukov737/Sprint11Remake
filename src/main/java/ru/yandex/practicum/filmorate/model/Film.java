@@ -21,9 +21,9 @@ public class Film {
     private int id;
     @NotBlank(message = "название не может быть пустым")
     private String name;
-    @NotBlank (message = "описание не может быть пустым")
+    @NotBlank(message = "описание не может быть пустым")
     private String description;
-    @NotNull (message = "дата выхода не может быть пустой")
+    @NotNull(message = "дата выхода не может быть пустой")
     private LocalDate releaseDate;
     private int duration;
     @EqualsAndHashCode.Exclude
@@ -35,7 +35,4 @@ public class Film {
     List<Genre> genres = new ArrayList<>();
     @EqualsAndHashCode.Exclude
     private RatingMPA mpa;
-
 }
-
-

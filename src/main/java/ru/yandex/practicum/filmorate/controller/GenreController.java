@@ -18,18 +18,18 @@ public class GenreController {
     private final GenreServise genreServise;
 
     @Autowired
-    public GenreController(GenreServise genreServise){
-        this.genreServise=genreServise;
+    public GenreController(GenreServise genreServise) {
+        this.genreServise = genreServise;
     }
 
     @GetMapping("/genres/{id}")
-    public Genre getGenre(@PathVariable int id){
-        log.info("Запрошен жанр с индексом {}",id);
+    public Genre getGenre(@PathVariable int id) {
+        log.info("Запрошен жанр с индексом {}", id);
         return genreServise.getGenreById(id);
     }
 
     @GetMapping("/genres")
-    public List<Genre> getAllGenres(){
+    public List<Genre> getAllGenres() {
         log.info("Запрошены все жанры");
         return genreServise.getAllGenres();
     }

@@ -32,16 +32,14 @@ public class User {
     private LocalDate birthday;
     @EqualsAndHashCode.Exclude
     @Builder.Default
-    private HashSet<Integer> friendIdList=new HashSet<>();
+    private HashSet<Integer> friendIdList = new HashSet<>();
     @EqualsAndHashCode.Exclude
     @Builder.Default
-    private HashMap<Integer,FriendStatus> friendStatuses=new HashMap<>();
+    private HashMap<Integer, FriendStatus> friendStatuses = new HashMap<>();
 
 
-
-    public enum FriendStatus{
+    public enum FriendStatus {
         NOT_ACCEPTED,
         ACCEPTED;
     }
-
 }

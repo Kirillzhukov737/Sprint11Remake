@@ -17,20 +17,19 @@ public class MpaController {
     private final MpaService mpaService;
 
     @Autowired
-    public MpaController(MpaService mpaService){
-        this.mpaService=mpaService;
+    public MpaController(MpaService mpaService) {
+        this.mpaService = mpaService;
     }
 
     @GetMapping("/mpa/{id}")
-    public RatingMPA getMPA(@PathVariable int id){
-        log.info("Запрошен MPA рейтинг с индексом {}",id);
+    public RatingMPA getMPA(@PathVariable int id) {
+        log.info("Запрошен MPA рейтинг с индексом {}", id);
         return mpaService.getRatingMPAById(id);
     }
 
     @GetMapping("/mpa")
-    public List<RatingMPA> getMPA(){
+    public List<RatingMPA> getMPA() {
         log.info("Запрошен список всех MPA рейтингов");
         return mpaService.getAllRatingMpa();
     }
-
 }

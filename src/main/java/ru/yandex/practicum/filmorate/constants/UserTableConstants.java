@@ -8,5 +8,4 @@ public class UserTableConstants {
     public static final String LOGIN = "login";
     public static final String NAME = "name";
     public static final String BIRTHDAY = "birthday";
-
 }

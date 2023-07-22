@@ -10,4 +10,3 @@ public class FilmTableConstants {
     public static final String DURATION = "DURATION";
     public static final String RATING_MPA_ID = "RATING_MPA_ID";
 }
-

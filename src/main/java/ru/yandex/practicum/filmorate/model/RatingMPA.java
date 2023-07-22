@@ -13,8 +13,7 @@ public class RatingMPA {
     private int id;
     private String name;
 
-    public RatingMPA(int id){
-        this.id=id;
+    public RatingMPA(int id) {
+        this.id = id;
     }
-
 }

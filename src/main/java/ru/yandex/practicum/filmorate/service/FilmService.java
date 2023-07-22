@@ -17,7 +17,6 @@ import java.util.List;
 @Slf4j
 public class FilmService {
 
-
     private final UserDbStorage userStorage;
     private final FilmStorage filmStorage;
 
@@ -58,18 +57,14 @@ public class FilmService {
      * @param userId идентификатор пользователя
      */
     public void addLike(int filmId, int userId) {
-
-        if(!filmStorage.isPresentInDataBase(filmId)){
+        if (!filmStorage.isPresentInDataBase(filmId)) {
             throw new DataNotFoundException("Фильм с id " + filmId + " не найден.");
         }
-        if(!userStorage.isPresentInDataBase(userId)){
+        if (!userStorage.isPresentInDataBase(userId)) {
             throw new DataNotFoundException("Пользователь с id " + userId + " не найден.");
         }
-
-        filmStorage.addLike(filmId,userId);
-
+        filmStorage.addLike(filmId, userId);
         log.info("Добавлен лайк к фильму {} от пользователя с id {}", filmId, userId);
-
     }
 
     /**
@@ -79,14 +74,13 @@ public class FilmService {
      * @param userId идентификатор пользователя
      */
     public void deleteLike(int filmId, int userId) {
-
-        if(!filmStorage.isPresentInDataBase(filmId)){
+        if (!filmStorage.isPresentInDataBase(filmId)) {
             throw new DataNotFoundException("Фильм с id " + filmId + " не найден.");
         }
-        if(!userStorage.isPresentInDataBase(userId)){
+        if (!userStorage.isPresentInDataBase(userId)) {
             throw new DataNotFoundException("Пользователь с id " + userId + " не найден.");
         }
-        filmStorage.deleteLike(filmId,userId);
+        filmStorage.deleteLike(filmId, userId);
         log.info("Удален лайк к фильму {} от пользователя с id {}", filmId, userId);
     }
 
@@ -97,7 +91,6 @@ public class FilmService {
      * @return List<Film> список самый популярных фильмов
      */
     public List<Film> getMostLikedFilms(int count) {
-
         if (count <= 0) {
             throw new ValidationException("Число фильмов должно быть положительным");
         }
@@ -108,8 +101,5 @@ public class FilmService {
         }
         log.info("Передан список самых популярных фильмов");
         return mostLikedFilms.subList(0, count);
-
     }
-
-
 }

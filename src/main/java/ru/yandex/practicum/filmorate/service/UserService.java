@@ -53,11 +53,10 @@ public class UserService {
      *                с идентификатором user1Id
      */
     public void makeFriends(int user1Id, int user2Id) {
-
         if (user1Id == user2Id) {
             throw new ValidationException("Пользователь не может добавить себя в друзья :(");
         }
-        userStorage.makeFriends(user1Id,user2Id);
+        userStorage.makeFriends(user1Id, user2Id);
         log.info("{} и {} стали друзьями", user1Id, user2Id);
     }
 
@@ -68,8 +67,7 @@ public class UserService {
      * @param user2Id идентификатор пользователя, из чьего списка друзей удалится пользователь с идентификатором user1Id
      */
     public void deleteFriend(int user1Id, int user2Id) {
-
-        userStorage.deleteFriends(user1Id,user2Id);
+        userStorage.deleteFriends(user1Id, user2Id);
         log.info("{} и {} больше не друзья", user1Id, user2Id);
     }
 
@@ -80,14 +78,13 @@ public class UserService {
      * @return List<User> список друзей
      */
     public List<User> getFriends(int userId) {
-
         HashSet<Integer> friendIdList;
         List<User> friendList = new ArrayList<>();
         friendIdList = userStorage.getUserById(userId).getFriendIdList();
         for (int id : friendIdList) {
             friendList.add(userStorage.getUserById(id));
         }
-        Collections.sort(friendList,(f1,f2)->f1.getId()-f2.getId());
+        Collections.sort(friendList, (f1, f2) -> f1.getId() - f2.getId());
         log.info("Передан список друзей пользователя id = {}", userId);
         return friendList;
     }
@@ -100,7 +97,6 @@ public class UserService {
      * @return List<User> список друзей
      */
     public List<User> getMutualFriends(int user1Id, int user2Id) {
-
         if (user1Id == user2Id) {
             throw new ValidationException("Пользователь разделяет с собой всех своих друзей :D");
         }
@@ -111,11 +107,7 @@ public class UserService {
         for (int i : user1FriendList) {
             mutualFriends.add(userStorage.getUserById(i));
         }
-
         log.info("Передан список общих друзей пользователей с id {} и {}", user1Id, user2Id);
         return mutualFriends;
-
-
     }
-
 }
