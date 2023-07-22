@@ -117,7 +117,8 @@ public class FilmDao implements FilmStorage {
 
     private void extractFilmMpaFromDB(int id, Film film) {
         SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(
-                "SELECT f." + FilmTableConstants.RATING_MPA_ID + ", mpa." + RatingMpaTableConstants.RATING_MPA_NAME
+                "SELECT f." + FilmTableConstants.RATING_MPA_ID
+                        + ", mpa." + RatingMpaTableConstants.RATING_MPA_NAME
                         + "\nFROM " + FilmTableConstants.TABLE_NAME + " AS f\n"
                         + "INNER JOIN " + RatingMpaTableConstants.TABLE_NAME + " AS mpa "
                         + "ON mpa." + RatingMpaTableConstants.RATING_MPA_ID + " = f." + FilmTableConstants.RATING_MPA_ID
@@ -145,8 +146,6 @@ public class FilmDao implements FilmStorage {
                         + FilmTableConstants.DESCRIPTION + "=? AND "
                         + FilmTableConstants.DURATION + "=? AND "
                         + FilmTableConstants.RELEASE_DATE + "=?;"
-
-
                 , film.getName()
                 , film.getDescription()
                 , film.getDuration()
@@ -248,15 +247,13 @@ public class FilmDao implements FilmStorage {
                                 + FilmTableConstants.RELEASE_DATE + "= ?,"
                                 + FilmTableConstants.DURATION + "= ?,"
                                 + FilmTableConstants.RATING_MPA_ID + "= ?"
-                                + "\nWHERE " + FilmTableConstants.FILM_ID + "= ? ;"
-                        ,
+                                + "\nWHERE " + FilmTableConstants.FILM_ID + "= ? ;",
                         film.getName(),
                         film.getDescription(),
                         Date.valueOf(film.getReleaseDate()),
                         film.getDuration(),
                         film.getMpa().getId(),
                         film.getId());
-
                 jdbcTemplate.execute(
                         "DELETE FROM " + FilmsToGenresTableConstants.TABLE_NAME
                                 + " WHERE " + FilmsToGenresTableConstants.FILM_ID + "= " + film.getId()
