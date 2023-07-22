@@ -98,8 +98,8 @@ public class FilmDao implements FilmStorage {
                         + "\nWHERE ftg." + FilmsToGenresTableConstants.FILM_ID + "= ?", id
         );
         while (genresRow.next()) {
-            film.getGenres().add(new Genre(genresRow.getInt(GenreTableConstants.GENRE_ID)
-                    , genresRow.getString(GenreTableConstants.GENRE_NAME)));
+            film.getGenres().add(new Genre(genresRow.getInt(GenreTableConstants.GENRE_ID),
+                    genresRow.getString(GenreTableConstants.GENRE_NAME)));
         }
         Collections.sort(film.getGenres(), (g1, g2) -> g1.getId() - g2.getId());
     }
@@ -145,11 +145,11 @@ public class FilmDao implements FilmStorage {
                         + "WHERE " + FilmTableConstants.NAME + "=? AND "
                         + FilmTableConstants.DESCRIPTION + "=? AND "
                         + FilmTableConstants.DURATION + "=? AND "
-                        + FilmTableConstants.RELEASE_DATE + "=?;"
-                , film.getName()
-                , film.getDescription()
-                , film.getDuration()
-                , Date.valueOf(film.getReleaseDate()));
+                        + FilmTableConstants.RELEASE_DATE + "=?;",
+                film.getName(),
+                film.getDescription(),
+                film.getDuration(),
+                Date.valueOf(film.getReleaseDate()));
         return filmsRows;
     }
 
