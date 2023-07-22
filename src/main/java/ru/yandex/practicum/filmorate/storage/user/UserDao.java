@@ -96,8 +96,9 @@ public class UserDao implements UserDbStorage {
         SqlRowSet usersRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + UserTableConstants.USER_ID + "\n"
                         + "FROM " + UserTableConstants.TABLE_NAME + "\n"
-                        + "WHERE " + UserTableConstants.LOGIN + "=? AND " + UserTableConstants.EMAIL + "=?"
-                , user.getLogin(), user.getEmail());
+                        + "WHERE " + UserTableConstants.LOGIN + "=? AND " + UserTableConstants.EMAIL + "=?",
+                user.getLogin(),
+                user.getEmail());
         return usersRows;
     }
 
@@ -121,8 +122,7 @@ public class UserDao implements UserDbStorage {
                                 + UserTableConstants.LOGIN + "= ?,"
                                 + UserTableConstants.NAME + "= ?,"
                                 + UserTableConstants.BIRTHDAY + "= ?"
-                                + "\nWHERE " + UserTableConstants.USER_ID + "=?;"
-                        ,
+                                + "\nWHERE " + UserTableConstants.USER_ID + "=?;",
                         user.getEmail(),
                         user.getLogin(),
                         user.getName(),
@@ -311,8 +311,8 @@ public class UserDao implements UserDbStorage {
         SqlRowSet usersRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + UserTableConstants.USER_ID + "\n"
                         + "FROM " + UserTableConstants.TABLE_NAME + "\n"
-                        + "WHERE " + UserTableConstants.LOGIN + "=? OR " + UserTableConstants.EMAIL + "=?;"
-                , user.getLogin(), user.getEmail());
+                        + "WHERE " + UserTableConstants.LOGIN + "=? OR " + UserTableConstants.EMAIL + "=?;",
+                user.getLogin(), user.getEmail());
         if (usersRows.next()) {
             return true;
         }
@@ -323,8 +323,8 @@ public class UserDao implements UserDbStorage {
         SqlRowSet usersRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + UserTableConstants.USER_ID + "\n"
                         + "FROM " + UserTableConstants.TABLE_NAME + "\n"
-                        + "WHERE " + UserTableConstants.USER_ID + " =?;"
-                , userId);
+                        + "WHERE " + UserTableConstants.USER_ID + " =?;",
+                userId);
         if (usersRows.next()) {
             return true;
         }
