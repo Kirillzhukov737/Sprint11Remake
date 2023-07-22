@@ -33,129 +33,133 @@ class UserControllerTest {
     private static Integer port;
 
     @BeforeAll
-    static void beforeAll(){
-        System.out.println("Server port "+port);
+    static void beforeAll() {
+        System.out.println("Server port " + port);
     }
+
     @BeforeEach
-    void beforeEach(){
+    void beforeEach() {
         restTemplate.delete("/films");
         restTemplate.delete("/users");
     }
+
     @AfterEach
-    void afterEach(){
+    void afterEach() {
         restTemplate.delete("/films");
         restTemplate.delete("/users");
     }
+
     @Test
-    void shouldReturnEmptyList(){
+    void shouldReturnEmptyList() {
         ResponseEntity<List> response = restTemplate.getForEntity("/users", List.class);
-        System.out.println("Тело ответа: "+response.getBody().toString());
+        System.out.println("Тело ответа: " + response.getBody().toString());
         Assertions.assertEquals((response.getStatusCode()), HttpStatus.OK);
         Assertions.assertTrue(response.getBody().isEmpty());
     }
 
     @Test
-    void shouldPostAndReturnValidUser(){
+    void shouldPostAndReturnValidUser() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         User user2 = User.builder()
                 .id(2)
                 .email("u2@m.ru")
                 .login("l2")
                 .name("n2")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users",user1, User.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.OK,postResponse.getStatusCode());
-        Assertions.assertEquals(user1,postResponse.getBody());
-        postResponse = restTemplate.postForEntity("/users",user2, User.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.OK,postResponse.getStatusCode());
-        Assertions.assertEquals(user2,postResponse.getBody());
-        ArrayList<User> userList = new ArrayList<>(List.of(user1,user2));
+        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users", user1, User.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
+        Assertions.assertEquals(user1, postResponse.getBody());
+        postResponse = restTemplate.postForEntity("/users", user2, User.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
+        Assertions.assertEquals(user2, postResponse.getBody());
+        ArrayList<User> userList = new ArrayList<>(List.of(user1, user2));
         ResponseEntity<ArrayList<User>> getResponse = restTemplate.exchange("/users",
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<ArrayList<User>>() {});
-        System.out.println("Тело ответа: "+getResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.OK,getResponse.getStatusCode());
-        Assertions.assertEquals(userList,getResponse.getBody());
+                new ParameterizedTypeReference<ArrayList<User>>() {
+                });
+        System.out.println("Тело ответа: " + getResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        Assertions.assertEquals(userList, getResponse.getBody());
     }
 
     @Test
-    void shouldUpdateUser(){
+    void shouldUpdateUser() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         User user2 = User.builder()
                 .id(1)
                 .email("u2@m.ru")
                 .login("l2")
                 .name("n2")
-                .birthday(LocalDate.of(2002,1,1))
+                .birthday(LocalDate.of(2002, 1, 1))
                 .build();
-        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users",user1, User.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.OK,postResponse.getStatusCode());
-        Assertions.assertEquals(user1,postResponse.getBody());
+        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users", user1, User.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
+        Assertions.assertEquals(user1, postResponse.getBody());
         HttpEntity<User> entity = new HttpEntity<User>(user2);
-        ResponseEntity<User> putResponse = restTemplate.exchange("/users",HttpMethod.PUT,entity, User.class);
-        Assertions.assertEquals(HttpStatus.OK,postResponse.getStatusCode());
-        Assertions.assertEquals(user2,putResponse.getBody());
+        ResponseEntity<User> putResponse = restTemplate.exchange("/users", HttpMethod.PUT, entity, User.class);
+        Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
+        Assertions.assertEquals(user2, putResponse.getBody());
     }
 
     @Test
-    void shouldReturnInstanceAlreadyExistException(){
+    void shouldReturnInstanceAlreadyExistException() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users",user1, User.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.OK,postResponse.getStatusCode());
-        Assertions.assertEquals(user1,postResponse.getBody());
-        ResponseEntity<String> postResponse1 = restTemplate.postForEntity("/users",user1, String.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.CONFLICT,postResponse1.getStatusCode());
+        ResponseEntity<User> postResponse = restTemplate.postForEntity("/users", user1, User.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
+        Assertions.assertEquals(user1, postResponse.getBody());
+        ResponseEntity<String> postResponse1 = restTemplate.postForEntity("/users", user1, String.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.CONFLICT, postResponse1.getStatusCode());
         Assertions.assertEquals("{\"message\":\"Не удалось добавить пользователя: пользователь уже существует\"}",
                 postResponse1.getBody());
     }
 
     @Test
-    void shouldNotAcceptInvalidEmail(){
+    void shouldNotAcceptInvalidEmail() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1mru")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        ResponseEntity<String> postResponse = restTemplate.postForEntity("/users",user1, String.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,postResponse.getStatusCode());
+        ResponseEntity<String> postResponse = restTemplate.postForEntity("/users", user1, String.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, postResponse.getStatusCode());
         user1 = User.builder()
                 .id(1)
                 .email("")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
-        postResponse = restTemplate.postForEntity("/users",user1, String.class);
-        System.out.println("Тело ответа: "+postResponse.getBody().toString());
-        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR,postResponse.getStatusCode());
+        postResponse = restTemplate.postForEntity("/users", user1, String.class);
+        System.out.println("Тело ответа: " + postResponse.getBody().toString());
+        Assertions.assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, postResponse.getStatusCode());
     }
 
     @Test
@@ -165,7 +169,7 @@ class UserControllerTest {
                 .email("u1@m.ru")
                 .login("")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         ResponseEntity<String> postResponse = restTemplate.postForEntity("/users", user1, String.class);
         System.out.println("Тело ответа: " + postResponse.getBody().toString());
@@ -175,7 +179,7 @@ class UserControllerTest {
                 .email("u1@m.ru")
                 .login("a a")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         postResponse = restTemplate.postForEntity("/users", user1, String.class);
         System.out.println("Тело ответа: " + postResponse.getBody().toString());
@@ -185,28 +189,28 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldUseLoginIfNameIsBlank(){
+    void shouldUseLoginIfNameIsBlank() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name(" ")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         ResponseEntity<User> postResponse = restTemplate.postForEntity("/users", user1, User.class);
         System.out.println("Тело ответа: " + postResponse.getBody().toString());
         Assertions.assertEquals(HttpStatus.OK, postResponse.getStatusCode());
-        Assertions.assertEquals("l1",postResponse.getBody().getName());
+        Assertions.assertEquals("l1", postResponse.getBody().getName());
     }
 
     @Test
-    void shouldNotAcceptWrongBirthDate(){
+    void shouldNotAcceptWrongBirthDate() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name("n1")
-                .birthday( LocalDate.now().plusYears(1))
+                .birthday(LocalDate.now().plusYears(1))
                 .build();
         ResponseEntity<String> postResponse = restTemplate.postForEntity("/users", user1, String.class);
         System.out.println("Тело ответа: " + postResponse.getBody().toString());
@@ -216,50 +220,50 @@ class UserControllerTest {
     }
 
     @Test
-    void shouldNotAddFriendSameUser(){
+    void shouldNotAddFriendSameUser() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name("n1")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         HttpEntity<User> userEntity = new HttpEntity<>(user1);
-        restTemplate.exchange("/users",HttpMethod.POST,userEntity,User.class);
-        ResponseEntity<String> putResponse = restTemplate.exchange("/users/1/friends/1",HttpMethod.PUT,null,String.class);
+        restTemplate.exchange("/users", HttpMethod.POST, userEntity, User.class);
+        ResponseEntity<String> putResponse = restTemplate.exchange("/users/1/friends/1", HttpMethod.PUT, null, String.class);
         System.out.println(putResponse.getBody());
-        Assertions.assertEquals(HttpStatus.BAD_REQUEST,putResponse.getStatusCode());
+        Assertions.assertEquals(HttpStatus.BAD_REQUEST, putResponse.getStatusCode());
     }
 
     @Test
-    void shouldNotAddNotExistingFriend(){
+    void shouldNotAddNotExistingFriend() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name(" ")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         HttpEntity<User> userEntity = new HttpEntity<>(user1);
-        restTemplate.exchange("/users",HttpMethod.POST,userEntity,User.class);
-        ResponseEntity<String> putResponse = restTemplate.exchange("/users/1/friends/2222",HttpMethod.PUT,null,String.class);
+        restTemplate.exchange("/users", HttpMethod.POST, userEntity, User.class);
+        ResponseEntity<String> putResponse = restTemplate.exchange("/users/1/friends/2222", HttpMethod.PUT, null, String.class);
         System.out.println(putResponse.getBody());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND,putResponse.getStatusCode());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, putResponse.getStatusCode());
     }
 
     @Test
-    void shouldThrowExceptionWhenDeletingNonExistingFriend(){
+    void shouldThrowExceptionWhenDeletingNonExistingFriend() {
         User user1 = User.builder()
                 .id(1)
                 .email("u1@m.ru")
                 .login("l1")
                 .name(" ")
-                .birthday(LocalDate.of(2000,1,1))
+                .birthday(LocalDate.of(2000, 1, 1))
                 .build();
         HttpEntity<User> userEntity = new HttpEntity<>(user1);
-        restTemplate.exchange("/users",HttpMethod.POST,userEntity,User.class);
-        ResponseEntity<String> deleteResponse = restTemplate.exchange("/users/1/friends/222",HttpMethod.DELETE,null,String.class);
+        restTemplate.exchange("/users", HttpMethod.POST, userEntity, User.class);
+        ResponseEntity<String> deleteResponse = restTemplate.exchange("/users/1/friends/222", HttpMethod.DELETE, null, String.class);
         System.out.println(deleteResponse.getBody());
-        Assertions.assertEquals(HttpStatus.NOT_FOUND,deleteResponse.getStatusCode());
+        Assertions.assertEquals(HttpStatus.NOT_FOUND, deleteResponse.getStatusCode());
     }
 }
