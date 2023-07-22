@@ -8,7 +8,7 @@ public interface UserDbStorage {
 
     public User getUserById(int id);
 
-    public HashMap<Integer,User> getAllUsers();
+    public HashMap<Integer, User> getAllUsers();
 
     public User addUser(User film);
 

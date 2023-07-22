@@ -35,12 +35,10 @@ public class UserDao implements UserDbStorage {
      */
     @Override
     public HashMap<Integer, User> getAllUsers() {
-
         HashMap<Integer, User> users = new HashMap<>();
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + UserTableConstants.USER_ID + " AS user_id\n"
                         + "FROM " + UserTableConstants.TABLE_NAME);
-
         while (userRows.next()) {
             int index = userRows.getInt("user_id");
             users.put(index, loadUserFromDbById(index));
@@ -111,7 +109,6 @@ public class UserDao implements UserDbStorage {
      */
     @Override
     public User updateUser(User user) {
-
         checkUserValidation(user);
         User buffUser = new User();
         try {
@@ -163,7 +160,6 @@ public class UserDao implements UserDbStorage {
                     "ALTER TABLE " + UserTableConstants.TABLE_NAME
                             + " ALTER COLUMN " + UserTableConstants.USER_ID + " RESTART WITH 1");
         }
-
         return removingUser;
     }
 
@@ -178,51 +174,43 @@ public class UserDao implements UserDbStorage {
                     "DELETE FROM " + UserTableConstants.TABLE_NAME
                             + " WHERE " + UserTableConstants.USER_ID + "= " + idsRows.getInt(UserTableConstants.USER_ID));
         }
-
         jdbcTemplate.execute(
                 "ALTER TABLE " + UserTableConstants.TABLE_NAME
                         + " ALTER COLUMN " + UserTableConstants.USER_ID + " RESTART WITH 1");
-
         log.info("Таблица пользователей очищена");
     }
 
     @Override
     public void makeFriends(int userId, int friendId) {
-
         if (!isPresentInDataBase(userId) || !isPresentInDataBase(friendId)) {
             throw new DataNotFoundException("Не удалось удалить пользователя: пользователь не найден.");
         }
-
         if (areTheyFriends(userId, friendId)) {
             throw new InstanceAlreadyExistException("Они уже друзья");
         }
-
-
         insertIntoFriendList(userId, friendId, User.FriendStatus.NOT_ACCEPTED);
-        updateFriendShipStatus(userId,friendId);
+        updateFriendShipStatus(userId, friendId);
         log.info("Пользователь {} и {} записаны в базу друзей", userId, friendId);
     }
 
     private void updateFriendShipStatus(int userId, int friendId) {
-
         SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(
                 "SELECT COUNT(ft.id) AS count"
-                        +" FROM( "
-                +"SELECT "+FriendsListConstants.USER_ID+" AS id"
-                        +" FROM "+FriendsListConstants.TABLE_NAME
+                        + " FROM( "
+                        + "SELECT " + FriendsListConstants.USER_ID + " AS id"
+                        + " FROM " + FriendsListConstants.TABLE_NAME
                         + " WHERE " + FriendsListConstants.USER_ID + " IN (" + userId + "," + friendId
                         + ") AND " + FriendsListConstants.FRIEND_ID + " IN (" + userId + "," + friendId + ")"
-                +") AS ft;"
-
+                        + ") AS ft;"
         );
-        if(friendsRows.next()){
-            if(friendsRows.getInt("count")==2){
+        if (friendsRows.next()) {
+            if (friendsRows.getInt("count") == 2) {
                 jdbcTemplate.update(
-                        "UPDATE "+FriendsListConstants.TABLE_NAME
-                        +" SET "+FriendsListConstants.FRIENDSHIP_STATUS_ID+" = ? "
+                        "UPDATE " + FriendsListConstants.TABLE_NAME
+                                + " SET " + FriendsListConstants.FRIENDSHIP_STATUS_ID + " = ? "
                                 + " WHERE " + FriendsListConstants.USER_ID + " IN (" + userId + "," + friendId
                                 + ") AND " + FriendsListConstants.FRIEND_ID + " IN (" + userId + "," + friendId + ");",
-                        User.FriendStatus.ACCEPTED.ordinal()+1
+                        User.FriendStatus.ACCEPTED.ordinal() + 1
                 );
             }
         }
@@ -230,12 +218,10 @@ public class UserDao implements UserDbStorage {
 
     @Override
     public void deleteFriends(int userId, int friendId) {
-
         if (!areTheyFriends(userId, friendId)) {
             throw new DataNotFoundException("Пользователи " + userId + " и " + friendId + " не дружили");
         }
         deleteFromFriendList(userId, friendId);
-
     }
 
     private void deleteFromFriendList(int userId, int friendId) {
@@ -277,7 +263,6 @@ public class UserDao implements UserDbStorage {
      */
     @Override
     public User getUserById(int id) {
-
         User user = loadUserFromDbById(id);
         log.info("Передан пользователь id = {}", id);
         return user;
@@ -319,7 +304,6 @@ public class UserDao implements UserDbStorage {
             user.getFriendIdList().add(friendID);
             user.getFriendStatuses().put(friendID, status);
         }
-
         return user;
     }
 

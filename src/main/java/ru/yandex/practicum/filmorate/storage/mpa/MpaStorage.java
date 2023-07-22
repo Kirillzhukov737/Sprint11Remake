@@ -9,5 +9,4 @@ public interface MpaStorage {
     public RatingMPA getRatingMpaById(int id);
 
     public List<RatingMPA> getAllRatingMpa();
-
 }

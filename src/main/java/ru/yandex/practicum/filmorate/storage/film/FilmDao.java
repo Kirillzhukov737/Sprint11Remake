@@ -36,7 +36,6 @@ public class FilmDao implements FilmStorage {
      */
     @Override
     public HashMap<Integer, Film> getAllFilms() {
-
         HashMap<Integer, Film> films = new HashMap<>();
         SqlRowSet idsRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + FilmTableConstants.FILM_ID + " FROM " + FilmTableConstants.TABLE_NAME);
@@ -56,14 +55,12 @@ public class FilmDao implements FilmStorage {
      */
     @Override
     public Film getFilmById(int id) {
-
         Film film = loadFilmFromDbById(id);
         log.info("Передан фильм id = {}", id);
         return film;
     }
 
     private Film loadFilmFromDbById(int id) {
-
         if (!isPresentInDataBase(id)) {
             throw new DataNotFoundException("Фильм с id " + id + " не найден.");
         }
@@ -78,7 +75,6 @@ public class FilmDao implements FilmStorage {
     }
 
     private void extractFilmCoreFromDB(int id, Film film) {
-
         SqlRowSet filmRow = jdbcTemplate.queryForRowSet(
                 "SELECT * FROM " + FilmTableConstants.TABLE_NAME + " AS f\n"
                         + "INNER JOIN " + RatingMpaTableConstants.TABLE_NAME + " AS mpa "
@@ -101,12 +97,11 @@ public class FilmDao implements FilmStorage {
                         + "ge." + GenreTableConstants.GENRE_ID + "= ftg." + FilmsToGenresTableConstants.GENRE_ID
                         + "\nWHERE ftg." + FilmsToGenresTableConstants.FILM_ID + "= ?", id
         );
-
         while (genresRow.next()) {
             film.getGenres().add(new Genre(genresRow.getInt(GenreTableConstants.GENRE_ID)
                     , genresRow.getString(GenreTableConstants.GENRE_NAME)));
         }
-        Collections.sort(film.getGenres(),(g1,g2)->g1.getId()-g2.getId());
+        Collections.sort(film.getGenres(), (g1, g2) -> g1.getId() - g2.getId());
     }
 
     private void extractFilmLikesFromDB(int id, Film film) {
@@ -132,11 +127,9 @@ public class FilmDao implements FilmStorage {
             film.setMpa(new RatingMPA(mpaRow.getInt(FilmTableConstants.RATING_MPA_ID),
                     mpaRow.getString(RatingMpaTableConstants.RATING_MPA_NAME)));
         }
-
     }
 
     public boolean isPresentInDataBase(Film film) {
-
         SqlRowSet filmsRows = getIdRowsFromDb(film);
         if (filmsRows.next()) {
             return true;
@@ -145,7 +138,6 @@ public class FilmDao implements FilmStorage {
     }
 
     private SqlRowSet getIdRowsFromDb(Film film) {
-
         SqlRowSet filmsRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + FilmTableConstants.FILM_ID + "\n"
                         + "FROM " + FilmTableConstants.TABLE_NAME + "\n"
@@ -163,7 +155,6 @@ public class FilmDao implements FilmStorage {
     }
 
     public boolean isPresentInDataBase(int id) {
-
         SqlRowSet filmsRows = jdbcTemplate.queryForRowSet(
                 "SELECT " + FilmTableConstants.FILM_ID + "\n"
                         + "FROM " + FilmTableConstants.TABLE_NAME + "\n"
@@ -182,7 +173,6 @@ public class FilmDao implements FilmStorage {
      */
     @Override
     public Film addFilm(Film film) {
-
         checkFilmValidation(film);
         if (isPresentInDataBase(film)) {
             throw new InstanceAlreadyExistException("Не удалось добавить фильм: фильм уже существует");
@@ -206,9 +196,7 @@ public class FilmDao implements FilmStorage {
             if (filmRows.next()) {
                 film.setId(filmRows.getInt(FilmTableConstants.FILM_ID));
             }
-
             for (Genre genre : film.getGenres()) {
-
                 SqlRowSet genresRows = jdbcTemplate.queryForRowSet(
                         "SELECT * FROM " + FilmsToGenresTableConstants.TABLE_NAME
                                 + " WHERE " + FilmsToGenresTableConstants.GENRE_ID + " = ? AND "
@@ -228,9 +216,8 @@ public class FilmDao implements FilmStorage {
             }
 
             film = loadFilmFromDbById(film.getId());
-
             log.info("Добавлен фильм {}", film);
-        }catch (DataIntegrityViolationException | BadSqlGrammarException ex){
+        } catch (DataIntegrityViolationException | BadSqlGrammarException ex) {
             SqlRowSet filmRows = getIdRowsFromDb(film);
             if (filmRows.next()) {
                 film.setId(filmRows.getInt(FilmTableConstants.FILM_ID));
@@ -238,7 +225,6 @@ public class FilmDao implements FilmStorage {
             }
             throw new RuntimeException("SQL exception");
         }
-
         return film;
     }
 
@@ -275,9 +261,7 @@ public class FilmDao implements FilmStorage {
                         "DELETE FROM " + FilmsToGenresTableConstants.TABLE_NAME
                                 + " WHERE " + FilmsToGenresTableConstants.FILM_ID + "= " + film.getId()
                 );
-
                 for (Genre genre : film.getGenres()) {
-
                     SqlRowSet genresRows = jdbcTemplate.queryForRowSet(
                             "SELECT * FROM " + FilmsToGenresTableConstants.TABLE_NAME
                                     + " WHERE " + FilmsToGenresTableConstants.GENRE_ID + " = ? AND "
@@ -295,14 +279,12 @@ public class FilmDao implements FilmStorage {
                         );
                     }
                 }
-
                 film = loadFilmFromDbById(film.getId());
                 log.info("Обновлен фильм {}", film);
                 return film;
-
             }
             throw new DataNotFoundException("Не удалось обновить фильм: фильм не найден.");
-        }catch (DataIntegrityViolationException | BadSqlGrammarException ex){
+        } catch (DataIntegrityViolationException | BadSqlGrammarException ex) {
             updateFilm(buffFilm);
             throw new RuntimeException("SQL exception");
         }
@@ -316,7 +298,6 @@ public class FilmDao implements FilmStorage {
      */
     @Override
     public Film deleteFilm(int id) {
-
         if (!isPresentInDataBase(id)) {
             throw new DataNotFoundException("Не удалось удалить фильм: фильм не найден.");
         }
@@ -325,13 +306,11 @@ public class FilmDao implements FilmStorage {
                 "DELETE FROM " + FilmTableConstants.TABLE_NAME
                         + " WHERE " + FilmTableConstants.FILM_ID + "= " + id);
         log.info("Удален пользователь {}", removingFilm);
-
-        if(getAllFilms().size()==0){
+        if (getAllFilms().size() == 0) {
             jdbcTemplate.execute(
-                    "ALTER TABLE "+FilmTableConstants.TABLE_NAME
-                    +" ALTER COLUMN "+FilmTableConstants.FILM_ID+" RESTART WITH 1");
+                    "ALTER TABLE " + FilmTableConstants.TABLE_NAME
+                            + " ALTER COLUMN " + FilmTableConstants.FILM_ID + " RESTART WITH 1");
         }
-
         return removingFilm;
     }
 
@@ -340,7 +319,6 @@ public class FilmDao implements FilmStorage {
      */
     @Override
     public void deleteAllFilms() {
-
         SqlRowSet idsRows = jdbcTemplate.queryForRowSet("SELECT * FROM " + FilmTableConstants.TABLE_NAME);
         while (idsRows.next()) {
             jdbcTemplate.execute(
@@ -348,15 +326,14 @@ public class FilmDao implements FilmStorage {
                             + " WHERE " + FilmTableConstants.FILM_ID + " = " + idsRows.getInt(FilmTableConstants.FILM_ID));
         }
         jdbcTemplate.execute(
-                "ALTER TABLE "+FilmTableConstants.TABLE_NAME
-                        +" ALTER COLUMN "+FilmTableConstants.FILM_ID+" RESTART WITH 1");
+                "ALTER TABLE " + FilmTableConstants.TABLE_NAME
+                        + " ALTER COLUMN " + FilmTableConstants.FILM_ID + " RESTART WITH 1");
 
         log.info("Таблица фильмов очищена");
     }
 
     @Override
     public void addLike(int filmId, int userId) {
-
         SqlRowSet likeRow = jdbcTemplate.queryForRowSet(
                 "SELECT * FROM " + LikedFilmsTableConstants.TABLE_NAME
                         + " WHERE " + LikedFilmsTableConstants.FILM_ID + " = " + filmId
@@ -365,19 +342,16 @@ public class FilmDao implements FilmStorage {
         if (likeRow.next()) {
             throw new InstanceAlreadyExistException("Лайк уже стоит");
         }
-
         jdbcTemplate.update(
                 "INSERT INTO " + LikedFilmsTableConstants.TABLE_NAME
                         + " (" + LikedFilmsTableConstants.USER_ID
                         + "," + LikedFilmsTableConstants.FILM_ID + ")\n"
                         + "VALUES (?,?);", userId, filmId
         );
-
     }
 
     @Override
     public void deleteLike(int filmId, int userId) {
-
         jdbcTemplate.execute(
                 "DELETE FROM " + LikedFilmsTableConstants.TABLE_NAME
                         + "\nWHERE " + LikedFilmsTableConstants.FILM_ID + " = " + filmId
@@ -393,7 +367,6 @@ public class FilmDao implements FilmStorage {
     private void checkFilmValidation(Film film) {
         StringBuilder message = new StringBuilder().append("Не удалось добавить фильм: ");
         boolean isValid = true;
-
         if (film.getDescription().length() > 200) {
             message.append("описание не должно превышать 200 символов; ");
             isValid = false;
@@ -410,6 +383,4 @@ public class FilmDao implements FilmStorage {
             throw new ValidationException(message.toString());
         }
     }
-
-
 }
