@@ -21,10 +21,12 @@ public class GenreDao implements GenreStorage {
 
     @Override
     public Genre getGenreById(int id) {
-        SqlRowSet genreRow = jdbcTemplate.queryForRowSet(
-                "SELECT * FROM " + GenreTableConstants.TABLE_NAME
-                        + " WHERE " + GenreTableConstants.GENRE_ID + " = ?", id
+        String query = String.format(
+                "SELECT * FROM %s WHERE %s = ?",
+                GenreTableConstants.TABLE_NAME,
+                GenreTableConstants.GENRE_ID
         );
+        SqlRowSet genreRow = jdbcTemplate.queryForRowSet(query, id);
         Genre genre = new Genre();
         if (genreRow.next()) {
             genre = new Genre(id, genreRow.getString(GenreTableConstants.GENRE_NAME));
@@ -35,7 +37,8 @@ public class GenreDao implements GenreStorage {
 
     @Override
     public List<Genre> getAllGenres() {
-        SqlRowSet genreRow = jdbcTemplate.queryForRowSet("SELECT * FROM " + GenreTableConstants.TABLE_NAME);
+        String query = String.format("SELECT * FROM %s", GenreTableConstants.TABLE_NAME);
+        SqlRowSet genreRow = jdbcTemplate.queryForRowSet(query);
         List<Genre> genres = new ArrayList<>();
         while (genreRow.next()) {
             int id = genreRow.getInt(GenreTableConstants.GENRE_ID);

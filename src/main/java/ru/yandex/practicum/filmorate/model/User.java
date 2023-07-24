@@ -37,7 +37,6 @@ public class User {
     @Builder.Default
     private HashMap<Integer, FriendStatus> friendStatuses = new HashMap<>();
 
-
     public enum FriendStatus {
         NOT_ACCEPTED,
         ACCEPTED;

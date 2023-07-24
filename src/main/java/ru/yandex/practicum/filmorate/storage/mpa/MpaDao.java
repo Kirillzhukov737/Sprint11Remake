@@ -21,10 +21,12 @@ public class MpaDao implements MpaStorage {
 
     @Override
     public RatingMPA getRatingMpaById(int id) {
-        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(
-                "SELECT * FROM " + RatingMpaTableConstants.TABLE_NAME
-                        + " WHERE " + RatingMpaTableConstants.RATING_MPA_ID + " = ?", id
+        String query = String.format(
+                "SELECT * FROM %s WHERE %s = ?",
+                RatingMpaTableConstants.TABLE_NAME,
+                RatingMpaTableConstants.RATING_MPA_ID
         );
+        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(query, id);
         RatingMPA ratingMPA = new RatingMPA();
         if (mpaRow.next()) {
             ratingMPA = new RatingMPA(id, mpaRow.getString(RatingMpaTableConstants.RATING_MPA_NAME));
@@ -35,7 +37,8 @@ public class MpaDao implements MpaStorage {
 
     @Override
     public List<RatingMPA> getAllRatingMpa() {
-        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet("SELECT * FROM " + RatingMpaTableConstants.TABLE_NAME);
+        String query = String.format("SELECT * FROM %s", RatingMpaTableConstants.TABLE_NAME);
+        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(query);
         List<RatingMPA> ratingMPA = new ArrayList<>();
         while (mpaRow.next()) {
             int id = mpaRow.getInt(RatingMpaTableConstants.RATING_MPA_ID);

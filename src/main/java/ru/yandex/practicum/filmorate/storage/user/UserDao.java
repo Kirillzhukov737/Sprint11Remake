@@ -36,9 +36,12 @@ public class UserDao implements UserDbStorage {
     @Override
     public HashMap<Integer, User> getAllUsers() {
         HashMap<Integer, User> users = new HashMap<>();
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet(
-                "SELECT " + UserTableConstants.USER_ID + " AS user_id\n"
-                        + "FROM " + UserTableConstants.TABLE_NAME);
+        String query = String.format(
+                "SELECT %s AS user_id FROM %s",
+                UserTableConstants.USER_ID,
+                UserTableConstants.TABLE_NAME
+        );
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(query);
         while (userRows.next()) {
             int index = userRows.getInt("user_id");
             users.put(index, loadUserFromDbById(index));
@@ -61,16 +64,17 @@ public class UserDao implements UserDbStorage {
                 throw new InstanceAlreadyExistException("Не удалось добавить пользователя: пользователь уже существует");
             }
             jdbcTemplate.update(
-                    "INSERT INTO " + UserTableConstants.TABLE_NAME
-                            + " (" + UserTableConstants.EMAIL
-                            + "," + UserTableConstants.LOGIN
-                            + "," + UserTableConstants.NAME
-                            + "," + UserTableConstants.BIRTHDAY + ")"
-                            + " VALUES(?,?,?,?)",
+                    String.format("INSERT INTO %s (%s, %s, %s, %s) VALUES (?, ?, ?, ?)",
+                            UserTableConstants.TABLE_NAME,
+                            UserTableConstants.EMAIL,
+                            UserTableConstants.LOGIN,
+                            UserTableConstants.NAME,
+                            UserTableConstants.BIRTHDAY),
                     user.getEmail(),
                     user.getLogin(),
                     user.getName(),
-                    Date.valueOf(user.getBirthday()));
+                    Date.valueOf(user.getBirthday())
+            );
 
             user = loadUserFromDbById(findUserId(user));
             log.info("Добавлен пользователь {}", user);
@@ -93,12 +97,14 @@ public class UserDao implements UserDbStorage {
     }
 
     private SqlRowSet getUserIdRow(User user) {
-        SqlRowSet usersRows = jdbcTemplate.queryForRowSet(
-                "SELECT " + UserTableConstants.USER_ID + "\n"
-                        + "FROM " + UserTableConstants.TABLE_NAME + "\n"
-                        + "WHERE " + UserTableConstants.LOGIN + "=? AND " + UserTableConstants.EMAIL + "=?",
-                user.getLogin(),
-                user.getEmail());
+        String query = String.format(
+                "SELECT %s\nFROM %s\nWHERE %s=? AND %s=?",
+                UserTableConstants.USER_ID,
+                UserTableConstants.TABLE_NAME,
+                UserTableConstants.LOGIN,
+                UserTableConstants.EMAIL
+        );
+        SqlRowSet usersRows = jdbcTemplate.queryForRowSet(query, user.getLogin(), user.getEmail());
         return usersRows;
     }
 
@@ -115,19 +121,23 @@ public class UserDao implements UserDbStorage {
         try {
             if (isPresentInDataBase(user.getId())) {
                 buffUser = loadUserFromDbById(user.getId());
+                String query = String.format(
+                        "UPDATE %s SET %s=?, %s=?, %s=?, %s=? WHERE %s=?;",
+                        UserTableConstants.TABLE_NAME,
+                        UserTableConstants.EMAIL,
+                        UserTableConstants.LOGIN,
+                        UserTableConstants.NAME,
+                        UserTableConstants.BIRTHDAY,
+                        UserTableConstants.USER_ID
+                );
                 jdbcTemplate.update(
-                        "UPDATE " + UserTableConstants.TABLE_NAME
-                                + " SET "
-                                + UserTableConstants.EMAIL + "= ?,"
-                                + UserTableConstants.LOGIN + "= ?,"
-                                + UserTableConstants.NAME + "= ?,"
-                                + UserTableConstants.BIRTHDAY + "= ?"
-                                + "\nWHERE " + UserTableConstants.USER_ID + "=?;",
+                        query,
                         user.getEmail(),
                         user.getLogin(),
                         user.getName(),
                         Date.valueOf(user.getBirthday()),
-                        user.getId());
+                        user.getId()
+                );
                 user = loadUserFromDbById(user.getId());
                 log.info("Обновлен пользователь {}", user);
                 return user;
@@ -151,14 +161,21 @@ public class UserDao implements UserDbStorage {
             throw new DataNotFoundException("Не удалось удалить пользователя: пользователь не найден.");
         }
         User removingUser = loadUserFromDbById(id);
-        jdbcTemplate.execute(
-                "DELETE FROM " + UserTableConstants.TABLE_NAME
-                        + " WHERE " + UserTableConstants.USER_ID + "= " + id);
+        String deleteQuery = String.format(
+                "DELETE FROM %s WHERE %s = ?",
+                UserTableConstants.TABLE_NAME,
+                UserTableConstants.USER_ID
+        );
+        jdbcTemplate.update(deleteQuery, id);
         log.info("Удален пользователь {}", removingUser);
-        if (getAllUsers().size() == 0) {
+        if (getAllUsers().isEmpty()) {
             jdbcTemplate.execute(
-                    "ALTER TABLE " + UserTableConstants.TABLE_NAME
-                            + " ALTER COLUMN " + UserTableConstants.USER_ID + " RESTART WITH 1");
+                    String.format(
+                            "ALTER TABLE %s ALTER COLUMN %s RESTART WITH 1",
+                            UserTableConstants.TABLE_NAME,
+                            UserTableConstants.USER_ID
+                    )
+            );
         }
         return removingUser;
     }
@@ -170,13 +187,20 @@ public class UserDao implements UserDbStorage {
     public void deleteAllUsers() {
         SqlRowSet idsRows = jdbcTemplate.queryForRowSet("SELECT * FROM " + UserTableConstants.TABLE_NAME);
         while (idsRows.next()) {
-            jdbcTemplate.execute(
-                    "DELETE FROM " + UserTableConstants.TABLE_NAME
-                            + " WHERE " + UserTableConstants.USER_ID + "= " + idsRows.getInt(UserTableConstants.USER_ID));
+            int userId = idsRows.getInt(UserTableConstants.USER_ID);
+            String deleteQuery = String.format(
+                    "DELETE FROM %s WHERE %s = ?",
+                    UserTableConstants.TABLE_NAME,
+                    UserTableConstants.USER_ID
+            );
+            jdbcTemplate.update(deleteQuery, userId);
         }
-        jdbcTemplate.execute(
-                "ALTER TABLE " + UserTableConstants.TABLE_NAME
-                        + " ALTER COLUMN " + UserTableConstants.USER_ID + " RESTART WITH 1");
+        String restartQuery = String.format(
+                "ALTER TABLE %s ALTER COLUMN %s RESTART WITH 1",
+                UserTableConstants.TABLE_NAME,
+                UserTableConstants.USER_ID
+        );
+        jdbcTemplate.execute(restartQuery);
         log.info("Таблица пользователей очищена");
     }
 
@@ -194,24 +218,38 @@ public class UserDao implements UserDbStorage {
     }
 
     private void updateFriendShipStatus(int userId, int friendId) {
-        SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(
-                "SELECT COUNT(ft.id) AS count"
-                        + " FROM( "
-                        + "SELECT " + FriendsListConstants.USER_ID + " AS id"
-                        + " FROM " + FriendsListConstants.TABLE_NAME
-                        + " WHERE " + FriendsListConstants.USER_ID + " IN (" + userId + "," + friendId
-                        + ") AND " + FriendsListConstants.FRIEND_ID + " IN (" + userId + "," + friendId + ")"
-                        + ") AS ft;"
+        String subQuery = String.format(
+                "SELECT %s AS id FROM %s WHERE %s IN (%d, %d) AND %s IN (%d, %d)",
+                FriendsListConstants.USER_ID,
+                FriendsListConstants.TABLE_NAME,
+                FriendsListConstants.USER_ID,
+                userId,
+                friendId,
+                FriendsListConstants.FRIEND_ID,
+                userId,
+                friendId
         );
+
+        String query = String.format(
+                "SELECT COUNT(ft.id) AS count FROM (%s) AS ft",
+                subQuery
+        );
+
+        SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(query);
         if (friendsRows.next()) {
             if (friendsRows.getInt("count") == 2) {
-                jdbcTemplate.update(
-                        "UPDATE " + FriendsListConstants.TABLE_NAME
-                                + " SET " + FriendsListConstants.FRIENDSHIP_STATUS_ID + " = ? "
-                                + " WHERE " + FriendsListConstants.USER_ID + " IN (" + userId + "," + friendId
-                                + ") AND " + FriendsListConstants.FRIEND_ID + " IN (" + userId + "," + friendId + ");",
-                        User.FriendStatus.ACCEPTED.ordinal() + 1
+                String updateQuery = String.format(
+                        "UPDATE %s SET %s = ? WHERE %s IN (%d, %d) AND %s IN (%d, %d)",
+                        FriendsListConstants.TABLE_NAME,
+                        FriendsListConstants.FRIENDSHIP_STATUS_ID,
+                        FriendsListConstants.USER_ID,
+                        userId,
+                        friendId,
+                        FriendsListConstants.FRIEND_ID,
+                        userId,
+                        friendId
                 );
+                jdbcTemplate.update(updateQuery, User.FriendStatus.ACCEPTED.ordinal() + 1);
             }
         }
     }
@@ -225,10 +263,17 @@ public class UserDao implements UserDbStorage {
     }
 
     private void deleteFromFriendList(int userId, int friendId) {
-        jdbcTemplate.execute(
-                "DELETE FROM " + FriendsListConstants.TABLE_NAME
-                        + " WHERE " + FriendsListConstants.USER_ID + " IN (" + userId + "," + friendId
-                        + ") AND " + FriendsListConstants.FRIEND_ID + " IN (" + userId + "," + friendId + ");");
+        String deleteQuery = String.format(
+                "DELETE FROM %s WHERE %s IN (%d, %d) AND %s IN (%d, %d);",
+                FriendsListConstants.TABLE_NAME,
+                FriendsListConstants.USER_ID,
+                userId,
+                friendId,
+                FriendsListConstants.FRIEND_ID,
+                userId,
+                friendId
+        );
+        jdbcTemplate.execute(deleteQuery);
     }
 
     private void insertIntoFriendList(int userId, int friendId, User.FriendStatus status) {
@@ -275,32 +320,45 @@ public class UserDao implements UserDbStorage {
      * @return объект User
      */
     private User loadUserFromDbById(int id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM "
-                + UserTableConstants.TABLE_NAME + " WHERE " + UserTableConstants.USER_ID + " = ?", id);
+        String userQuery = String.format(
+                "SELECT * FROM %s WHERE %s = ?",
+                UserTableConstants.TABLE_NAME,
+                UserTableConstants.USER_ID
+        );
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(userQuery, id);
+
         User user = User.builder().build();
         if (userRows.next()) {
             user.setId(id);
             user.setLogin(userRows.getString(UserTableConstants.LOGIN));
-            user.setEmail((userRows.getString(UserTableConstants.EMAIL)));
+            user.setEmail(userRows.getString(UserTableConstants.EMAIL));
             user.setName(userRows.getString(UserTableConstants.NAME));
             user.setBirthday(Date.valueOf(userRows.getString(UserTableConstants.BIRTHDAY)).toLocalDate());
             checkUserValidation(user);
         } else {
             throw new DataNotFoundException("Пользователь с id " + id + " не найден.");
         }
-        SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(
-                "SELECT " + "fl." + FriendsListConstants.FRIEND_ID + ",\n"
-                        + "fs." + FriendShipStatusConstants.FRIENDSHIP_STATUS_NAME + "\n"
-                        + "FROM " + FriendsListConstants.TABLE_NAME + " AS fl\n"
-                        + "INNER JOIN " + FriendShipStatusConstants.TABLE_NAME + " AS fs ON "
-                        + "fs." + FriendShipStatusConstants.FRIENDSHIP_STATUS_ID
-                        + " = fl." + FriendsListConstants.FRIENDSHIP_STATUS_ID + "\n"
-                        + "WHERE " + FriendsListConstants.USER_ID + " = ?", id);
+
+        String friendsQuery = String.format(
+                "SELECT fl.%s, fs.%s\n"
+                        + "FROM %s AS fl\n"
+                        + "INNER JOIN %s AS fs ON fs.%s = fl.%s\n"
+                        + "WHERE %s = ?",
+                FriendsListConstants.FRIEND_ID,
+                FriendShipStatusConstants.FRIENDSHIP_STATUS_NAME,
+                FriendsListConstants.TABLE_NAME,
+                FriendShipStatusConstants.TABLE_NAME,
+                FriendShipStatusConstants.FRIENDSHIP_STATUS_ID,
+                FriendsListConstants.FRIENDSHIP_STATUS_ID,
+                FriendsListConstants.USER_ID
+        );
+        SqlRowSet friendsRows = jdbcTemplate.queryForRowSet(friendsQuery, id);
 
         while (friendsRows.next()) {
             int friendID = friendsRows.getInt(FriendsListConstants.FRIEND_ID);
             User.FriendStatus status = User.FriendStatus.valueOf(
-                    friendsRows.getString(FriendShipStatusConstants.FRIENDSHIP_STATUS_NAME));
+                    friendsRows.getString(FriendShipStatusConstants.FRIENDSHIP_STATUS_NAME)
+            );
             user.getFriendIdList().add(friendID);
             user.getFriendStatuses().put(friendID, status);
         }

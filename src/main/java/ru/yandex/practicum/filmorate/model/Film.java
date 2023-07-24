@@ -31,8 +31,7 @@ public class Film {
     private HashSet<Integer> likedUsersId = new HashSet<>();
     @EqualsAndHashCode.Exclude
     @Builder.Default
-    private
-    List<Genre> genres = new ArrayList<>();
+    private List<Genre> genres = new ArrayList<>();
     @EqualsAndHashCode.Exclude
     private RatingMPA mpa;
 }

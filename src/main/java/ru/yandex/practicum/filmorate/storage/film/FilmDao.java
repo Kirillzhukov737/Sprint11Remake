@@ -37,8 +37,12 @@ public class FilmDao implements FilmStorage {
     @Override
     public HashMap<Integer, Film> getAllFilms() {
         HashMap<Integer, Film> films = new HashMap<>();
-        SqlRowSet idsRows = jdbcTemplate.queryForRowSet(
-                "SELECT " + FilmTableConstants.FILM_ID + " FROM " + FilmTableConstants.TABLE_NAME);
+        String query = String.format(
+                "SELECT %s FROM %s",
+                FilmTableConstants.FILM_ID,
+                FilmTableConstants.TABLE_NAME
+        );
+        SqlRowSet idsRows = jdbcTemplate.queryForRowSet(query);
         while (idsRows.next()) {
             int id = idsRows.getInt(FilmTableConstants.FILM_ID);
             films.put(id, loadFilmFromDbById(id));
@@ -75,11 +79,17 @@ public class FilmDao implements FilmStorage {
     }
 
     private void extractFilmCoreFromDB(int id, Film film) {
-        SqlRowSet filmRow = jdbcTemplate.queryForRowSet(
-                "SELECT * FROM " + FilmTableConstants.TABLE_NAME + " AS f\n"
-                        + "INNER JOIN " + RatingMpaTableConstants.TABLE_NAME + " AS mpa "
-                        + "ON mpa." + RatingMpaTableConstants.RATING_MPA_ID + " = f." + FilmTableConstants.RATING_MPA_ID
-                        + "\nWHERE " + FilmTableConstants.FILM_ID + " = ?", id);
+        String query = String.format(
+                "SELECT * FROM %s AS f\n"
+                        + "INNER JOIN %s AS mpa ON mpa.%s = f.%s\n"
+                        + "WHERE %s = ?",
+                FilmTableConstants.TABLE_NAME,
+                RatingMpaTableConstants.TABLE_NAME,
+                RatingMpaTableConstants.RATING_MPA_ID,
+                FilmTableConstants.RATING_MPA_ID,
+                FilmTableConstants.FILM_ID
+        );
+        SqlRowSet filmRow = jdbcTemplate.queryForRowSet(query, id);
         if (filmRow.next()) {
             film.setId(id);
             film.setName(filmRow.getString(FilmTableConstants.NAME));
@@ -90,43 +100,65 @@ public class FilmDao implements FilmStorage {
     }
 
     private void extractFilmGenresFromDB(int id, Film film) {
-        SqlRowSet genresRow = jdbcTemplate.queryForRowSet(
-                "SELECT ge." + GenreTableConstants.GENRE_ID + " ,ge." + GenreTableConstants.GENRE_NAME
-                        + "\nFROM " + FilmsToGenresTableConstants.TABLE_NAME + " AS ftg\n"
-                        + "INNER JOIN " + GenreTableConstants.TABLE_NAME + " AS ge ON "
-                        + "ge." + GenreTableConstants.GENRE_ID + "= ftg." + FilmsToGenresTableConstants.GENRE_ID
-                        + "\nWHERE ftg." + FilmsToGenresTableConstants.FILM_ID + "= ?", id
+        String query = String.format(
+                "SELECT ge.%s, ge.%s\n"
+                        + "FROM %s AS ftg\n"
+                        + "INNER JOIN %s AS ge ON ge.%s = ftg.%s\n"
+                        + "WHERE ftg.%s = ?",
+                GenreTableConstants.GENRE_ID,
+                GenreTableConstants.GENRE_NAME,
+                FilmsToGenresTableConstants.TABLE_NAME,
+                GenreTableConstants.TABLE_NAME,
+                GenreTableConstants.GENRE_ID,
+                FilmsToGenresTableConstants.GENRE_ID,
+                FilmsToGenresTableConstants.FILM_ID
         );
+        SqlRowSet genresRow = jdbcTemplate.queryForRowSet(query, id);
         while (genresRow.next()) {
-            film.getGenres().add(new Genre(genresRow.getInt(GenreTableConstants.GENRE_ID),
-                    genresRow.getString(GenreTableConstants.GENRE_NAME)));
+            film.getGenres().add(new Genre(
+                    genresRow.getInt(GenreTableConstants.GENRE_ID),
+                    genresRow.getString(GenreTableConstants.GENRE_NAME)
+            ));
         }
         Collections.sort(film.getGenres(), (g1, g2) -> g1.getId() - g2.getId());
     }
 
     private void extractFilmLikesFromDB(int id, Film film) {
-        SqlRowSet likedRow = jdbcTemplate.queryForRowSet(
-                "SELECT " + LikedFilmsTableConstants.USER_ID
-                        + "\nFROM " + LikedFilmsTableConstants.TABLE_NAME
-                        + "\nWHERE " + LikedFilmsTableConstants.FILM_ID + " = ?", id
+        String query = String.format(
+                "SELECT %s\n"
+                        + "FROM %s\n"
+                        + "WHERE %s = ?",
+                LikedFilmsTableConstants.USER_ID,
+                LikedFilmsTableConstants.TABLE_NAME,
+                LikedFilmsTableConstants.FILM_ID
         );
+
+        SqlRowSet likedRow = jdbcTemplate.queryForRowSet(query, id);
         while (likedRow.next()) {
             film.getLikedUsersId().add(likedRow.getInt(LikedFilmsTableConstants.USER_ID));
         }
     }
 
     private void extractFilmMpaFromDB(int id, Film film) {
-        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(
-                "SELECT f." + FilmTableConstants.RATING_MPA_ID
-                        + ", mpa." + RatingMpaTableConstants.RATING_MPA_NAME
-                        + "\nFROM " + FilmTableConstants.TABLE_NAME + " AS f\n"
-                        + "INNER JOIN " + RatingMpaTableConstants.TABLE_NAME + " AS mpa "
-                        + "ON mpa." + RatingMpaTableConstants.RATING_MPA_ID + " = f." + FilmTableConstants.RATING_MPA_ID
-                        + "\nWHERE " + FilmTableConstants.FILM_ID + "= ?", id
+        String query = String.format(
+                "SELECT f.%s, mpa.%s\n"
+                        + "FROM %s AS f\n"
+                        + "INNER JOIN %s AS mpa ON mpa.%s = f.%s\n"
+                        + "WHERE f.%s = ?",
+                FilmTableConstants.RATING_MPA_ID,
+                RatingMpaTableConstants.RATING_MPA_NAME,
+                FilmTableConstants.TABLE_NAME,
+                RatingMpaTableConstants.TABLE_NAME,
+                RatingMpaTableConstants.RATING_MPA_ID,
+                FilmTableConstants.RATING_MPA_ID,
+                FilmTableConstants.FILM_ID
         );
+        SqlRowSet mpaRow = jdbcTemplate.queryForRowSet(query, id);
         if (mpaRow.next()) {
-            film.setMpa(new RatingMPA(mpaRow.getInt(FilmTableConstants.RATING_MPA_ID),
-                    mpaRow.getString(RatingMpaTableConstants.RATING_MPA_NAME)));
+            film.setMpa(new RatingMPA(
+                    mpaRow.getInt(FilmTableConstants.RATING_MPA_ID),
+                    mpaRow.getString(RatingMpaTableConstants.RATING_MPA_NAME)
+            ));
         }
     }
 
@@ -139,17 +171,24 @@ public class FilmDao implements FilmStorage {
     }
 
     private SqlRowSet getIdRowsFromDb(Film film) {
+        String query = String.format(
+                "SELECT %s\n"
+                        + "FROM %s\n"
+                        + "WHERE %s=? AND %s=? AND %s=? AND %s=?;",
+                FilmTableConstants.FILM_ID,
+                FilmTableConstants.TABLE_NAME,
+                FilmTableConstants.NAME,
+                FilmTableConstants.DESCRIPTION,
+                FilmTableConstants.DURATION,
+                FilmTableConstants.RELEASE_DATE
+        );
         SqlRowSet filmsRows = jdbcTemplate.queryForRowSet(
-                "SELECT " + FilmTableConstants.FILM_ID + "\n"
-                        + "FROM " + FilmTableConstants.TABLE_NAME + "\n"
-                        + "WHERE " + FilmTableConstants.NAME + "=? AND "
-                        + FilmTableConstants.DESCRIPTION + "=? AND "
-                        + FilmTableConstants.DURATION + "=? AND "
-                        + FilmTableConstants.RELEASE_DATE + "=?;",
+                query,
                 film.getName(),
                 film.getDescription(),
                 film.getDuration(),
-                Date.valueOf(film.getReleaseDate()));
+                Date.valueOf(film.getReleaseDate())
+        );
         return filmsRows;
     }
 
@@ -199,14 +238,13 @@ public class FilmDao implements FilmStorage {
                 SqlRowSet genresRows = jdbcTemplate.queryForRowSet(
                         "SELECT * FROM " + FilmsToGenresTableConstants.TABLE_NAME
                                 + " WHERE " + FilmsToGenresTableConstants.GENRE_ID + " = ? AND "
-                                + FilmsToGenresTableConstants.FILM_ID + "= ?",
+                                + FilmsToGenresTableConstants.FILM_ID + " = ?",
                         genre.getId(), film.getId()
                 );
                 if (!genresRows.next()) {
-
                     jdbcTemplate.update(
                             "INSERT INTO " + FilmsToGenresTableConstants.TABLE_NAME
-                                    + "(" + FilmsToGenresTableConstants.GENRE_ID
+                                    + " (" + FilmsToGenresTableConstants.GENRE_ID
                                     + "," + FilmsToGenresTableConstants.FILM_ID
                                     + ") VALUES (?,?);",
                             genre.getId(), film.getId()
@@ -240,38 +278,42 @@ public class FilmDao implements FilmStorage {
             if (isPresentInDataBase(film.getId())) {
                 buffFilm = loadFilmFromDbById(film.getId());
                 jdbcTemplate.update(
-                        "UPDATE " + FilmTableConstants.TABLE_NAME
-                                + " SET "
-                                + FilmTableConstants.NAME + "= ?,"
-                                + FilmTableConstants.DESCRIPTION + "= ?,"
-                                + FilmTableConstants.RELEASE_DATE + "= ?,"
-                                + FilmTableConstants.DURATION + "= ?,"
-                                + FilmTableConstants.RATING_MPA_ID + "= ?"
-                                + "\nWHERE " + FilmTableConstants.FILM_ID + "= ? ;",
+                        String.format("UPDATE %s SET %s = ?, %s = ?, %s = ?, %s = ?, %s = ? WHERE %s = ? ;",
+                                FilmTableConstants.TABLE_NAME,
+                                FilmTableConstants.NAME,
+                                FilmTableConstants.DESCRIPTION,
+                                FilmTableConstants.RELEASE_DATE,
+                                FilmTableConstants.DURATION,
+                                FilmTableConstants.RATING_MPA_ID,
+                                FilmTableConstants.FILM_ID),
                         film.getName(),
                         film.getDescription(),
                         Date.valueOf(film.getReleaseDate()),
                         film.getDuration(),
                         film.getMpa().getId(),
-                        film.getId());
+                        film.getId()
+                );
+
                 jdbcTemplate.execute(
-                        "DELETE FROM " + FilmsToGenresTableConstants.TABLE_NAME
-                                + " WHERE " + FilmsToGenresTableConstants.FILM_ID + "= " + film.getId()
+                        String.format("DELETE FROM %s WHERE %s = %d",
+                                FilmsToGenresTableConstants.TABLE_NAME,
+                                FilmsToGenresTableConstants.FILM_ID,
+                                film.getId())
                 );
                 for (Genre genre : film.getGenres()) {
                     SqlRowSet genresRows = jdbcTemplate.queryForRowSet(
-                            "SELECT * FROM " + FilmsToGenresTableConstants.TABLE_NAME
-                                    + " WHERE " + FilmsToGenresTableConstants.GENRE_ID + " = ? AND "
-                                    + FilmsToGenresTableConstants.FILM_ID + "= ?",
+                            String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?",
+                                    FilmsToGenresTableConstants.TABLE_NAME,
+                                    FilmsToGenresTableConstants.GENRE_ID,
+                                    FilmsToGenresTableConstants.FILM_ID),
                             genre.getId(), film.getId()
                     );
                     if (!genresRows.next()) {
-
                         jdbcTemplate.update(
-                                "INSERT INTO " + FilmsToGenresTableConstants.TABLE_NAME
-                                        + "(" + FilmsToGenresTableConstants.GENRE_ID
-                                        + "," + FilmsToGenresTableConstants.FILM_ID
-                                        + ") VALUES (?,?);",
+                                String.format("INSERT INTO %s (%s, %s) VALUES (?, ?);",
+                                        FilmsToGenresTableConstants.TABLE_NAME,
+                                        FilmsToGenresTableConstants.GENRE_ID,
+                                        FilmsToGenresTableConstants.FILM_ID),
                                 genre.getId(), film.getId()
                         );
                     }
@@ -300,13 +342,18 @@ public class FilmDao implements FilmStorage {
         }
         Film removingFilm = loadFilmFromDbById(id);
         jdbcTemplate.execute(
-                "DELETE FROM " + FilmTableConstants.TABLE_NAME
-                        + " WHERE " + FilmTableConstants.FILM_ID + "= " + id);
-        log.info("Удален пользователь {}", removingFilm);
+                String.format("DELETE FROM %s WHERE %s = %d;",
+                        FilmTableConstants.TABLE_NAME,
+                        FilmTableConstants.FILM_ID,
+                        id)
+        );
+        log.info("Удален фильм {}", removingFilm);
         if (getAllFilms().size() == 0) {
             jdbcTemplate.execute(
-                    "ALTER TABLE " + FilmTableConstants.TABLE_NAME
-                            + " ALTER COLUMN " + FilmTableConstants.FILM_ID + " RESTART WITH 1");
+                    String.format("ALTER TABLE %s ALTER COLUMN %s RESTART WITH 1;",
+                            FilmTableConstants.TABLE_NAME,
+                            FilmTableConstants.FILM_ID)
+            );
         }
         return removingFilm;
     }
@@ -332,27 +379,30 @@ public class FilmDao implements FilmStorage {
     @Override
     public void addLike(int filmId, int userId) {
         SqlRowSet likeRow = jdbcTemplate.queryForRowSet(
-                "SELECT * FROM " + LikedFilmsTableConstants.TABLE_NAME
-                        + " WHERE " + LikedFilmsTableConstants.FILM_ID + " = " + filmId
-                        + " AND " + LikedFilmsTableConstants.USER_ID + " = " + userId
+                String.format("SELECT * FROM %s WHERE %s = %d AND %s = %d;",
+                        LikedFilmsTableConstants.TABLE_NAME,
+                        LikedFilmsTableConstants.FILM_ID, filmId,
+                        LikedFilmsTableConstants.USER_ID, userId)
         );
         if (likeRow.next()) {
             throw new InstanceAlreadyExistException("Лайк уже стоит");
         }
         jdbcTemplate.update(
-                "INSERT INTO " + LikedFilmsTableConstants.TABLE_NAME
-                        + " (" + LikedFilmsTableConstants.USER_ID
-                        + "," + LikedFilmsTableConstants.FILM_ID + ")\n"
-                        + "VALUES (?,?);", userId, filmId
+                String.format("INSERT INTO %s (%s, %s) VALUES (?,?);",
+                        LikedFilmsTableConstants.TABLE_NAME,
+                        LikedFilmsTableConstants.USER_ID,
+                        LikedFilmsTableConstants.FILM_ID),
+                userId, filmId
         );
     }
 
     @Override
     public void deleteLike(int filmId, int userId) {
         jdbcTemplate.execute(
-                "DELETE FROM " + LikedFilmsTableConstants.TABLE_NAME
-                        + "\nWHERE " + LikedFilmsTableConstants.FILM_ID + " = " + filmId
-                        + " AND " + LikedFilmsTableConstants.USER_ID + " = " + userId
+                String.format("DELETE FROM %s WHERE %s = %d AND %s = %d;",
+                        LikedFilmsTableConstants.TABLE_NAME,
+                        LikedFilmsTableConstants.FILM_ID, filmId,
+                        LikedFilmsTableConstants.USER_ID, userId)
         );
     }
 
