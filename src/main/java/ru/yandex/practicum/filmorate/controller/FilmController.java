@@ -14,7 +14,7 @@ import java.util.*;
 @Slf4j
 public class FilmController {
     @Value("${MOST_LIKED_FILMS_NUMBER}")
-    public int MOST_LIKED_FILMS_NUMBER;
+    public int most_liked_films_number;
     private final FilmService filmService;
 
     @Autowired
